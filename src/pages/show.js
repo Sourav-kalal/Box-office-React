@@ -1,48 +1,72 @@
-import React,{ useEffect, useState } from 'react';
+import React, { useEffect, useReducer } from 'react';
 import { useParams } from 'react-router-dom';
 import { apiGet } from '../misc/config';
 
 const Show = () => {
-    const {id} = useParams();
-    const [show, setshow] = useState(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState(null);
+  const { id } = useParams();
 
+  // const [show, setshow] = useState(null);
+  // const [isLoading, setIsLoading] = useState(true);
+  // const [error, setError] = useState(null);
 
-    useEffect(() => {
+  const reduce = (prevState, action) => {
+    switch (action.type) {
+      case 'FETCH_SUCCESS': {
+        return {
+          show: action.show,
+          isLoading: false,
+          error: null,
+        };
+      }
 
-        let isMounted = true;
+      case 'FETCH_FAILED':
+        return {
+          ...prevState,
+          isLoading: false,
+          error: action.err,
+        };
+      default:
+        return prevState;
+    }
+  };
 
-        apiGet(`/shows/${id}?embed[]=seasons&embed[]=cast`).then(res => {
-            if (isMounted) {
-                setshow(res);
-                setIsLoading(false);
-            }
-        }).catch(err => {
-            if (isMounted) {
-                setIsLoading(false);
-                setError(err.message)
-            }
-        })
+  const initialize = {
+    show: null,
+    isLoading: true,
+    error: null,
+  };
 
-        return () => {
-            isMounted = false;
+  const [{ isLoading, show, error }, dispatch] = useReducer(reduce, initialize);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    apiGet(`/shows/${id}?embed[]=seasons&embed[]=cast`)
+      .then(res => {
+        if (isMounted) {
+          dispatch({ type: 'FETCH_SUCCESS', show: res });
         }
-    }, [id]);
+      })
+      .catch(err => {
+        if (isMounted) {
+          dispatch({ type: 'FETCH_FAILED', err: err.message });
+        }
+      });
 
-    if (isLoading) {
-        return <div>Data is loaded</div>
-    }
-    if (error) {
-        return <div>Ther is an error {error}</div>
-    }
-    console.log(show)
+    return () => {
+      isMounted = false;
+    };
+  }, [dispatch, id]);
 
-    return (
-        <div>
-            Hey
-        </div>
-    );
-}
+  if (isLoading) {
+    return <div>Data is loaded</div>;
+  }
+  if (error) {
+    return <div>Ther is an error {error}</div>;
+  }
+  console.log(show);
+
+  return <div>Hey</div>;
+};
 
 export default Show;
