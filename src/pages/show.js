@@ -1,6 +1,12 @@
+/* eslint-disable no-underscore-dangle */
 import React, { useEffect, useReducer } from 'react';
 import { useParams } from 'react-router-dom';
+import Cast from '../components/shows/Cast';
+import Details from '../components/shows/Details';
+import Seasons from '../components/shows/Seasons';
+import Showmaindata from '../components/shows/showMainData';
 import { apiGet } from '../misc/config';
+import { ShowPageWrapper ,InfoBlock} from '../components/shows/Show.styled'
 
 const Show = () => {
   const { id } = useParams();
@@ -63,10 +69,30 @@ const Show = () => {
   }
   if (error) {
     return <div>Ther is an error {error}</div>;
-  }
-  console.log(show);
+    }
+    
+    console.log(show)
 
-  return <div>Hey</div>;
+    return <ShowPageWrapper>
+        <Showmaindata 
+            image={show.image} name={show.name} rating={show.rating} summary={show.summary} tags={show.genres}
+        />
+        <InfoBlock>
+            <h2>Details</h2>
+            <Details status={show.status } network={show.network } premiered={show.premiered }/>
+        </InfoBlock>
+
+        <InfoBlock>
+            <h2>Seasons</h2>
+            <Seasons seasons={ show._embedded.seasons}/>
+        </InfoBlock>
+
+        <InfoBlock>
+            <h2>Cast</h2>
+            <Cast cast={ show._embedded.cast}/>
+        </InfoBlock>
+
+  </ShowPageWrapper>
 };
 
 export default Show;
